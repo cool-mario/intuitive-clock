@@ -37,11 +37,11 @@ small{color:#aaa;font-size:.8rem}
 
 <div id="clockWrap">
   <svg viewBox="0 0 100 100" aria-label="Radial progress clock">
-    <!-- tracks (grey) -->
+    <!-- tracks -->
     <circle class="track" cx="50" cy="50" r="45" stroke-width="8"/>
     <circle class="track" cx="50" cy="50" r="32" stroke-width="6"/>
     <circle class="track" cx="50" cy="50" r="22" stroke-width="2"/>
-    <!-- coloured arcs -->
+    <!-- arcs -->
     <circle id="outer" cx="50" cy="50" r="45" stroke-width="8"/>
     <circle id="inner" cx="50" cy="50" r="32" stroke-width="6"/>
     <circle id="seconds" cx="50" cy="50" r="22" stroke-width="2"/>
@@ -57,14 +57,14 @@ small{color:#aaa;font-size:.8rem}
 <section id="settings">
   <h3 style="margin:0 0 .4rem">Settings</h3>
 
-  <label>Outer Ø <span id="vOuter">90</span> mm
-    <input type="range" id="dOuter" min="60" max="120" value="90">
+  <label>Outer Ø <span id="vOuter">100</span> mm
+    <input type="range" id="dOuter" min="70" max="130" value="100">
   </label>
-  <label>Hour Ø <span id="vHour">64</span> mm
-    <input type="range" id="dHour"  min="40" max="90" value="64">
+  <label>Hour Ø <span id="vHour">74</span> mm
+    <input type="range" id="dHour"  min="50" max="100" value="74">
   </label>
-  <label>Seconds Ø <span id="vSec">44</span> mm
-    <input type="range" id="dSec"   min="20" max="60" value="44">
+  <label>Seconds Ø <span id="vSec">54</span> mm
+    <input type="range" id="dSec"   min="30" max="70" value="54">
   </label>
 
   <label>Outer colour
@@ -137,7 +137,7 @@ function applyRingSizes(){
   localStorage.setItem(STORE('dOuter'),dOuter.value);
   localStorage.setItem(STORE('dHour'),dHour.value);
   localStorage.setItem(STORE('dSec'),dSec.value);
-  draw(); /* <-- force redraw so rings fill correctly */
+  draw(); /* force redraw */
 }
 [dOuter,dHour,dSec].forEach(el=>{
   el.oninput=()=>{
