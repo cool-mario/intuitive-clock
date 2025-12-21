@@ -187,7 +187,7 @@ function draw(){
   const h=now.getHours(), m=now.getMinutes(), s=now.getSeconds();
 
   /* outer 24h */
-  const dayStart=7, dayEnd=23, dayMinutes=(dayEnd-dayStart)*60;
+  const dayStart=0, dayEnd=24, dayMinutes=(dayEnd-dayStart)*60;
   const minutesToday=Math.max(0,Math.min(dayMinutes,(h-dayStart)*60+m));
   const dayP=minutesToday/dayMinutes;
   outer.style.strokeDashoffset=outer.style.strokeDasharray*(1-dayP);
