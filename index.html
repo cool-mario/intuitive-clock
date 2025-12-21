@@ -180,17 +180,32 @@ function randomVivid(){
   return `hsl(${hue},90%,60%)`;
 }
 
+/* ---------- SKY-COLOUR HELPERS ---------- */
+function skyColour(h){            // h = hour (0-24)
+  const dayStart=5, dayEnd=20;    // civil twilight window
+  if(h<=dayStart||h>=dayEnd) return '#0b1a3a'; // deep night
+  const p=(h-dayStart)/(dayEnd-dayStart);     // 0→1→0 over day
+  const mid=Math.abs(p-0.5)*2;                // 0 at noon, 1 at edges
+  const r=Math.round(135 - mid*110);
+  const g=Math.round(206 - mid*90);
+  const b=Math.round(250 - mid*40);
+  return `rgb(${r},${g},${b})`;
+}
+
 /* ---------- DRAW ---------- */
 function draw(){
   const now=new Date();
   now.setMinutes(now.getMinutes()+offsetMinutes);
   const h=now.getHours(), m=now.getMinutes(), s=now.getSeconds();
 
-  /* outer 24h */
+  
+  /* outer 24h SKY */
   const dayStart=0, dayEnd=24, dayMinutes=(dayEnd-dayStart)*60;
   const minutesToday=Math.max(0,Math.min(dayMinutes,(h-dayStart)*60+m));
   const dayP=minutesToday/dayMinutes;
+      /* outer.style.strokeDashoffset=outer.style.strokeDasharray*(1-dayP); */
   outer.style.strokeDashoffset=outer.style.strokeDasharray*(1-dayP);
+  outer.style.stroke = skyColour(h);   // <-- sky instead of static colour!
 
   /* inner 60min */
   const hourP=hourPercent(m,s);
