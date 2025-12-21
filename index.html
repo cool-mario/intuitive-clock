@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Ring Clock">
 <link rel="manifest" href="manifest.json">
 <title>Ring Clock</title>
 <style>
@@ -24,7 +23,6 @@ circle{fill:none;stroke-linecap:round}
 #digital{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
 #time{font-size:clamp(2.2rem,10vw,4rem);font-weight:600}
 #sub{font-size:clamp(.9rem,4vw,1.2rem);margin-top:.3rem;opacity:.8}
-/* ---- bottom-bar gear ---- */
 #toggleSettings{position:fixed;bottom:calc(12px + var(--safe-bottom));right:12px;width:56px;height:56px;border-radius:50%;background:#222;color:var(--txt);border:none;font-size:1.7rem;display:grid;place-items:center;box-shadow:0 2px 8px #0006;z-index:10}
 #settings{position:fixed;bottom:calc(76px + var(--safe-bottom));right:12px;width:min(280px,90vw);max-height:65vh;overflow-y:auto;background:#222;border-radius:12px;padding:.8rem 1rem;display:none;flex-direction:column;gap:.6rem;box-shadow:0 4px 20px #0009}
 #settings.show{display:flex}
@@ -39,11 +37,13 @@ small{color:#aaa;font-size:.8rem}
 
 <div id="clockWrap">
   <svg viewBox="0 0 100 100" aria-label="Radial progress clock">
+    <!-- tracks (grey) -->
     <circle class="track" cx="50" cy="50" r="45" stroke-width="8"/>
-    <circle id="outer" cx="50" cy="50" r="45" stroke-width="8"/>
     <circle class="track" cx="50" cy="50" r="32" stroke-width="6"/>
-    <circle id="inner" cx="50" cy="50" r="32" stroke-width="6"/>
     <circle class="track" cx="50" cy="50" r="22" stroke-width="2"/>
+    <!-- coloured arcs -->
+    <circle id="outer" cx="50" cy="50" r="45" stroke-width="8"/>
+    <circle id="inner" cx="50" cy="50" r="32" stroke-width="6"/>
     <circle id="seconds" cx="50" cy="50" r="22" stroke-width="2"/>
   </svg>
   <div id="digital">
@@ -99,6 +99,9 @@ let lastChimeMinute=-1, lastMinute=-1;
 const outer = document.getElementById('outer');
 const inner = document.getElementById('inner');
 const secEl = document.getElementById('seconds');
+const trackO= document.querySelector('.track:nth-of-type(1)');
+const trackI= document.querySelector('.track:nth-of-type(2)');
+const trackS= document.querySelector('.track:nth-of-type(3)');
 const timeTxt=document.getElementById('time');
 const subTxt =document.getElementById('sub');
 const smoothCk=document.getElementById('smooth');
@@ -121,15 +124,20 @@ function applyRingSizes(){
   const rO=mmToViewBox(dOuter.value)/2;
   const rI=mmToViewBox(dHour.value)/2;
   const rS=mmToViewBox(dSec.value)/2;
-  outer.setAttribute('r',rO);
-  inner.setAttribute('r',rI);
-  secEl.setAttribute('r',rS);
-  outer.style.strokeDasharray=2*Math.PI*rO;
-  inner.style.strokeDasharray=2*Math.PI*rI;
-  secEl.style.strokeDasharray=2*Math.PI*rS;
+  /* move BOTH track and coloured ring */
+  [outer,trackO].forEach(el=>el.setAttribute('r',rO));
+  [inner,trackI].forEach(el=>el.setAttribute('r',rI));
+  [secEl,trackS].forEach(el=>el.setAttribute('r',rS));
+  /* update circumferences */
+  const cO=2*Math.PI*rO, cI=2*Math.PI*rI, cS=2*Math.PI*rS;
+  outer.style.strokeDasharray=cO;
+  inner.style.strokeDasharray=cI;
+  secEl.style.strokeDasharray=cS;
+  /* save */
   localStorage.setItem(STORE('dOuter'),dOuter.value);
   localStorage.setItem(STORE('dHour'),dHour.value);
   localStorage.setItem(STORE('dSec'),dSec.value);
+  draw(); /* <-- force redraw so rings fill correctly */
 }
 [dOuter,dHour,dSec].forEach(el=>{
   el.oninput=()=>{
@@ -146,7 +154,7 @@ function applyRingSizes(){
     document.getElementById(id.replace('d','v')).textContent=localStorage.getItem(STORE(id));
   }
 });
-applyRingSizes();
+applyRingSizes(); /* initial draw with saved sizes */
 
 /* ---------- COLOUR UTILS ---------- */
 function hourPercent(min,sec){ return (min*60+sec)/3600; }
@@ -206,7 +214,7 @@ function draw(){
     }
   }
 }
-/* ---------- AUDIO ---------- -->
+/* ---------- AUDIO ---------- */
 function beep(){
   const ctx=new (window.AudioContext||window.webkitAudioContext)();
   const osc=ctx.createOscillator(), g=ctx.createGain();
@@ -215,7 +223,7 @@ function beep(){
   osc.start(); osc.stop(ctx.currentTime+0.06);
 }
 
-/* ---------- LOOP ---------- -->
+/* ---------- LOOP ---------- */
 let interval=null;
 function start(){ if(interval)return; draw(); interval=setInterval(draw,1000); }
 start();
