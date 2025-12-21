@@ -180,16 +180,30 @@ function randomVivid(){
   return `hsl(${hue},90%,60%)`;
 }
 
-/* ---------- SKY-COLOUR HELPERS ---------- */
+/* ---------- SKY-COLOUR WITH SUNRISE / SUNSET ---------- */
 function skyColour(h){            // h = hour (0-24)
-  const dayStart=5, dayEnd=20;    // civil twilight window
-  if(h<=dayStart||h>=dayEnd) return '#0b1a3a'; // deep night
-  const p=(h-dayStart)/(dayEnd-dayStart);     // 0→1→0 over day
-  const mid=Math.abs(p-0.5)*2;                // 0 at noon, 1 at edges
-  const r=Math.round(135 - mid*110);
-  const g=Math.round(206 - mid*90);
-  const b=Math.round(250 - mid*40);
-  return `rgb(${r},${g},${b})`;
+  const night  = [11,  26,  58];  // deep-night blue  rgb
+  const sunUp  = [255, 120, 40];  // sunrise / sunset orange
+  const day    = [135, 206, 250]; // noon light-blue
+
+  /* --- time windows --- */
+  const nightEnd = 5;   // civil twilight start
+  const sunrise  = 6.5; // sun just up
+  const sunset   = 17.5;
+  const nightStart = 19;
+
+  let colour;
+  if (h <= nightEnd || h >= nightStart) colour = night;
+  else if (h <= sunrise)                colour = interp(night, sunUp, (h - nightEnd) / (sunrise - nightEnd));
+  else if (h <= sunset)                 colour = interp(sunUp, day,   (h - sunrise) / (sunset - sunrise));
+  else                                  colour = interp(day,   sunUp, (h - sunset) / (nightStart - sunset));
+
+  return `rgb(${colour.map(Math.round).join(',')})`;
+
+  /* simple linear interp between two rgb arrays */
+  function interp(a, b, t) {
+    return a.map((ch, i) => ch + (b[i] - ch) * t);
+  }
 }
 
 /* ---------- DRAW ---------- */
