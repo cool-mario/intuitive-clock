@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Visual Ring Clock – dark mode</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+ :root{
+    --bg:#111;
+    --track:#333;
+    --outer:#6CE0FF;   /* default light-blue */
+    --txt:#eee;
+    --accent:#6CE0FF;  /* will be overridden by JS gradient */
+ }
+ body{margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);color:var(--txt);font-family:system-ui,Arial}
+ #clockWrap{width:min(90vw,400px);aspect-ratio:1/1;position:relative}
+ svg{width:100%;height:100%;transform:rotate(-90deg)}
+ circle{fill:none;stroke-linecap:round}
+ .track{stroke:var(--track)}
+ #outer{stroke:var(--outer);transition:stroke-dashoffset .3s ease}
+ #inner{stroke:var(--accent);transition:stroke-dashoffset .3s ease, stroke .3s ease}
+ #seconds{stroke:#FF47A3;transition:stroke-dashoffset .3s ease, stroke .2s ease; r:25.5;}
+ #digital{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:2rem;pointer-events:none}
+ #settings{margin-top:1rem;padding:1rem;background:#222;border-radius:8px;display:none;flex-direction:column;gap:.6rem;max-width:400px}
+ #settings.show{display:flex}
+ #toggleSettings{background:#222;color:var(--txt);border:none;font-size:1.4rem;padding:.4rem .8rem;border-radius:6px;cursor:pointer;margin-top:.5rem}
+ label{display:flex;justify-content:space-between;align-items:center}
+ input[type=number]{width:60px}
+ input[type=color]{width:30px;height:30px;border:none;background:none}
+ button{padding:.3rem .6rem}
+ small{color:#aaa}
+</style>
+</head>
+<body>
+
+<div id="clockWrap">
+  <svg viewBox="0 0 100 100" aria-label="Radial progress clock">
+    <!-- outer 24 h -->
+    <circle class="track" cx="50" cy="50" r="45" stroke-width="8"/>
+    <circle id="outer" cx="50" cy="50" r="45" stroke-width="8"/>
+    <!-- inner 60 min -->
+    <circle class="track" cx="50" cy="50" r="32" stroke-width="6"/>
+    <circle id="inner" cx="50" cy="50" r="32" stroke-width="6"/>
+    <!-- seconds -->
+    <circle class="track" cx="50" cy="50" r="22" stroke-width="2"/>
+    <circle id="seconds" cx="50" cy="50" r="22" stroke-width="2"/>
+  </svg>
+  <div id="digital">
+    <span id="time">--:--</span>
+    <small id="sub">--</small>
+  </div>
+</div>
+
+<button id="toggleSettings">⚙️</button>
+
+<section id="settings">
+  <h3 style="margin:0 0 .5rem">Settings</h3>
+
+  <label>Outer ring colour
+    <input type="color" id="cOuter" value="#6CE0FF">
+  </label>
+
+  <label>Track colour
+    <input type="color" id="cTrack" value="#333333">
+  </label>
+
+  <label>Smooth animation
+    <input type="checkbox" id="smooth" checked>
+  </label>
+
+  <label>Chime every
+    <input type="number" id="chimeInt" min="1" max="120" value="60"> minutes
+  </label>
+
+  <div style="display:flex;gap:.5rem">
+    <button id="sub10">-10 min</button>
+    <button id="add10">+10 min</button>
+    <button id="resetOff">Reset offset</button>
+  </div>
+  <small>Debug: artificially shift local time (persists until reset)</small>
+</section>
+
+<script>
+/* ---------- CONFIG ---------- */
+const rO = 45, rI = 32, rS = 22;
+const CIRC_O = 2 * Math.PI * rO;
+const CIRC_I = 2 * Math.PI * rI;
+const CIRC_S = 2 * Math.PI * rS;
+const STORE = key => `ringclk_${key}`;
+
+let offsetMinutes = +(localStorage.getItem(STORE('offset'))||0);
+let chimeEvery = +(localStorage.getItem(STORE('chime'))||60);
+let lastChimeMinute = -1;
+let lastMinute = -1; // for seconds ring reset
+
+/* ---------- DOM ---------- */
+const outer = document.getElementById('outer');
+const inner = document.getElementById('inner');
+const seconds = document.getElementById('seconds');
+const timeTxt = document.getElementById('time');
+const subTxt  = document.getElementById('sub');
+const smoothCk= document.getElementById('smooth');
+const cOuter  = document.getElementById('cOuter');
+const cTrack  = document.getElementById('cTrack');
+const chimeInp= document.getElementById('chimeInt');
+const settings= document.getElementById('settings');
+const toggleBtn=document.getElementById('toggleSettings');
+
+/* ---------- INIT SVG ---------- */
+outer.style.strokeDasharray = CIRC_O;
+inner.style.strokeDasharray = CIRC_I;
+seconds.style.strokeDasharray = CIRC_S;
+
+/* ---------- COLOUR UTILS ---------- */
+function hourPercent(min,sec){ return (min*60 + sec)/3600; }
+function interpolateColor(p){
+  /* 0..1 : light-blue → green → yellow → orange → red */
+  const stops=[
+    {pos:0,   rgb:[135,206,250]},  // light-blue
+    {pos:.35, rgb:[0,200,100]},    // green
+    {pos:.6,  rgb:[255,255,0]},    // yellow
+    {pos:.8,  rgb:[255,140,0]},    // orange
+    {pos:1,   rgb:[255,50,50]}     // red
+  ];
+  let i=stops.findIndex(s=>s.pos>=p);
+  if(i===-1)i=stops.length-1;
+  if(i===0)i=1;
+  const s0=stops[i-1], s1=stops[i];
+  const t=(p-s0.pos)/(s1.pos-s0.pos);
+  const r=Math.round(s0.rgb[0]+(s1.rgb[0]-s0.rgb[0])*t);
+  const g=Math.round(s0.rgb[1]+(s1.rgb[1]-s0.rgb[1])*t);
+  const b=Math.round(s0.rgb[2]+(s1.rgb[2]-s0.rgb[2])*t);
+  return `rgb(${r},${g},${b})`;
+}
+function randomVivid(){
+  const hue=Math.floor(Math.random()*360);
+  return `hsl(${hue},90%,60%)`;
+}
+
+/* ---------- DRAW ---------- */
+function draw(){
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + offsetMinutes);
+
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+  const totalSec = m*60 + s;
+
+  /* --- outer (24h) --- */
+  const dayStart = 7, dayEnd = 23;
+  const dayMinutes = (dayEnd-dayStart)*60;
+  const minutesToday = Math.max(0,Math.min(dayMinutes, (h-dayStart)*60 + m));
+  const dayP = minutesToday/dayMinutes;
+  outer.style.strokeDashoffset = CIRC_O * (1-dayP);
+
+  /* --- inner (60 min) --- */
+  const hourP = hourPercent(m,s);
+  inner.style.strokeDashoffset = CIRC_I * (1-hourP);
+  inner.style.stroke = interpolateColor(hourP);
+
+  /* --- seconds (60 s) --- */
+  if(m !== lastMinute){ // new minute -> reset
+    lastMinute=m;
+    seconds.style.strokeDashoffset = CIRC_S; // empty
+    seconds.style.stroke = randomVivid();
+  }
+  const secP = s/60;
+  seconds.style.strokeDashoffset = CIRC_S * (1-secP);
+
+  /* --- digital --- */
+  const timeStr = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  timeTxt.textContent = timeStr;
+  subTxt.textContent = `${60-m-1} m ${60-s} s left`;
+
+  /* --- chime --- */
+  if(chimeEvery>0){
+     const totalMin = h*60 + m;
+     if(totalMin % chimeEvery === 0 && lastChimeMinute!==totalMin){
+        lastChimeMinute=totalMin;
+        beep();
+     }
+  }
+}
+/* ---------- AUDIO ---------- */
+function beep(){
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  const osc=ctx.createOscillator();
+  const g=ctx.createGain();
+  osc.type='sine';
+  osc.frequency.value=800;
+  g.gain.value=0.08;
+  osc.connect(g).connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime+0.06);
+}
+
+/* ---------- LOOP ---------- */
+let interval = null;
+function start(){
+  if(interval)return;
+  draw();
+  interval=setInterval(draw,1000);
+}
+start();
+
+/* ---------- SETTINGS HOOKS ---------- */
+function applySmooth(){
+  const on = smoothCk.checked;
+  outer.style.transition = on ? 'stroke-dashoffset .3s ease' : 'none';
+  inner.style.transition = on ? 'stroke-dashoffset .3s ease, stroke .3s ease' : 'none';
+  seconds.style.transition = on ? 'stroke-dashoffset .3s ease, stroke .2s ease' : 'none';
+}
+smoothCk.onchange=()=>{
+  applySmooth();
+  localStorage.setItem(STORE('smooth'),smoothCk.checked);
+};
+smoothCk.checked=localStorage.getItem(STORE('smooth'))!=='false';
+applySmooth();
+
+cOuter.onchange=e=>{
+  document.documentElement.style.setProperty('--outer',e.target.value);
+  localStorage.setItem(STORE('cOuter'),e.target.value);
+};
+cTrack.onchange=e=>{
+  document.documentElement.style.setProperty('--track',e.target.value);
+  localStorage.setItem(STORE('cTrack'),e.target.value);
+};
+/* load saved colours */
+if(localStorage.getItem(STORE('cOuter'))) cOuter.value=localStorage.getItem(STORE('cOuter'));
+if(localStorage.getItem(STORE('cTrack'))) cTrack.value=localStorage.getItem(STORE('cTrack'));
+cOuter.onchange({target:cOuter});
+cTrack.onchange({target:cTrack});
+
+chimeInp.onchange=e=>{
+  chimeEvery=+e.target.value||0;
+  localStorage.setItem(STORE('chime'),chimeEvery);
+};
+chimeInp.value=chimeEvery;
+
+/* ---------- COLLAPSE/EXPAND ---------- */
+toggleBtn.onclick=()=>settings.classList.toggle('show');
+
+/* ---------- DEBUG TIME SHIFT ---------- */
+document.getElementById('sub10').onclick=()=>{offsetMinutes-=10;saveOff();};
+document.getElementById('add10').onclick=()=>{offsetMinutes+=10;saveOff();};
+document.getElementById('resetOff').onclick=()=>{offsetMinutes=0;saveOff();};
+function saveOff(){
+  localStorage.setItem(STORE('offset'),offsetMinutes);
+  draw();
+}
+</script>
+</body>
+</html>
