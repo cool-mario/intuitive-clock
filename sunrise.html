@@ -223,13 +223,9 @@ function draw(){
 
   
   /* outer 24h SKY */
-  // const dayStart=0, dayEnd=24, dayMinutes=(dayEnd-dayStart)*60;
-  // const minutesToday=Math.max(0,Math.min(dayMinutes,(h-dayStart)*60+m));
-  // const dayP=minutesToday/dayMinutes;
-  //     /* outer.style.strokeDashoffset=outer.style.strokeDasharray*(1-dayP); */
-  // outer.style.strokeDashoffset=outer.style.strokeDasharray*(1-dayP);
-  // outer.style.stroke = skyColour(h);   // <-- sky instead of static colour!
-
+  const dayStart=0, dayEnd=24, dayMinutes=(dayEnd-dayStart)*60;
+  const minutesToday=Math.max(0,Math.min(dayMinutes,(h-dayStart)*60+m));
+  const dayP=minutesToday/dayMinutes;
   /* outer ring = live sky */
   outer.style.stroke = skyColour(now);
   outer.style.strokeDashoffset = outer.style.strokeDasharray * (1 - dayP);
