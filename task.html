@@ -90,6 +90,11 @@ small{color:#aaa;font-size:.8rem}
 
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
 <script>
+/* ---------- TASK TIMER VARS ---------- */
+let taskStart = null;        // timestamp ms
+let taskPaused = 0;          // ms already accumulated while paused
+let taskRunning = false;     // state
+      
 /* ---------- CONFIG ---------- */
 const LAT = 37.943391;
 const LNG = -121.800546;
@@ -216,9 +221,9 @@ function skyColour(now){
 }
 
 /* ---------- TASK TIMER ---------- */
-let taskStart = null;        // timestamp ms
-let taskPaused = 0;          // ms already accumulated while paused
-let taskRunning = false;     // state
+// let taskStart = null;        // timestamp ms
+// let taskPaused = 0;          // ms already accumulated while paused
+// let taskRunning = false;     // state
 
 function taskMinutes(){ // returns current task length in minutes
   if (!taskRunning) return taskPaused / 60000;
