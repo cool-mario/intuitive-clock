@@ -229,8 +229,10 @@ function taskMinutes(){ // returns current task length in minutes
   if (!taskRunning) return taskPaused / 60000;
   return (Date.now() - taskStart + taskPaused) / 60000;
 }
-function taskColour(){  // calm green while running, dull when paused
-  return taskRunning ? '#3cb371' : '#556b55';
+function taskColour(){
+  const hue = (taskMinutes() * 6) % 360;        // 0-359
+  if (!taskRunning) return `hsl(${hue}, 20%, 45%)`; // desaturated color when paused
+  return `hsl(${hue}, 65%, 50%)`;               // 1 full hue rotation every 60 min of task-time
 }
 
 /* ---------- DRAW ---------- */
