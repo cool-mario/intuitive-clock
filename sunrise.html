@@ -1,5 +1,4 @@
-
-<!DOCTYPE html>
+      <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -89,6 +88,7 @@ small{color:#aaa;font-size:.8rem}
   <small>Debug: shift local time</small>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
 <script>
 /* ---------- CONFIG ---------- */
 const STORE = key => `ringclk_${key}`;
@@ -181,64 +181,38 @@ function randomVivid(){
   return `hsl(${hue},90%,60%)`;
 }
 
-/* ---------- SKY-COLOUR HELPERS ---------- */
-// function skyColour(h){            // h = hour 0-24
-//   const deep = { r: 11,  g: 26,  b: 58  };   // #0b1a3a
-//   const rise = { r: 255, g: 94,  b: 77  };   // sunrise/sunset orange
-//   const day  = { r: 135, g: 206, b: 250 };   // light blue
+/* ---------- SKY COLOUR WITH SUNCALC ---------- */
+const LAT = 37.943391, LNG = -121.800546;
+function skyColour(now){
+  const times = SunCalc.getTimes(now, LAT, LNG);
+  const h   = now.getHours() + now.getMinutes()/60;
+  const dawn = times.dawn.getHours() + times.dawn.getMinutes()/60;
+  const dusk = times.dusk.getHours() + times.dusk.getMinutes()/60;
+  const sunrise = times.sunrise.getHours() + times.sunrise.getMinutes()/60;
+  const sunset  = times.sunset.getHours()  + times.sunset.getMinutes()/60;
 
-//   let mix;
-//   if (h <= 5) {                       // 00→05  deep night
-//     mix = 0;
-//   } else if (h <= 6) {                // 05→06  sunrise
-//     mix = (h - 5);
-//   } else if (h <= 18) {               // 06→18  day
-//     mix = 1;
-//   } else if (h <= 19) {               // 18→19  sunset
-//     mix = 1 - (h - 18);
-//   } else {                            // 19→24  deep night
-//     mix = 0;
-//   }
-
-//   function lerp(a,b,t){               // linear interpolate
-//     return {
-//       r: Math.round(a.r + (b.r - a.r) * t),
-//       g: Math.round(a.g + (b.g - a.g) * t),
-//       b: Math.round(a.b + (b.b - a.b) * t)
-//     };
-//   }
-
-//   const colour = mix === 1 ? day :           // full day
-//                  mix === 0 ? deep :          // full night
-//                  lerp(deep, rise, mix);       // sunrise / sunset fade
-
-//   return `rgb(${colour.r},${colour.g},${colour.b})`;
-// }
-
-/* ---------- SKY-COLOUR FROM API ---------- */
-const LAT  = 37.943391;
-const LNG  = -121.800546;
-let sunTimes = null;   // {sunrise, sunset} in UTC minutes-of-day
-
-/* fetch today’s sun times once, then every midnight */
-async function loadSun(){
-  const date  = new Date().toISOString().split('T')[0];  // YYYY-MM-DD
-  const url   = `https://api.sunrise-sunset.org/json?lat=${LAT}&lng=${LNG}&date=${date}&formatted=0`;
-  const res   = await fetch(url);
-  const data  = await res.json();
-  if(data.status !== 'OK') return;
-  const r = new Date(data.results.civil_twilight_begin),
-        s = new Date(data.results.civil_twilight_end);
-  sunTimes = { sunrise : r.getUTCHours()*60 + r.getUTCMinutes(),
-               sunset  : s.getUTCHours()*60 + s.getUTCMinutes() };
+  let colour = '#0b1a3a';                       // deep night
+  if (h >= dawn && h <= sunrise){               // dawn gradient
+    const p = (h - dawn) / (sunrise - dawn);
+    const r = Math.round(11  + p * 120);
+    const g = Math.round(26  + p * 160);
+    const b = Math.round(58  + p * 190);
+    colour = `rgb(${r},${g},${b})`;
+  } else if (h >= sunrise && h <= sunset){      // day sky
+    const mid = 1 - Math.abs((h - (sunrise + sunset)/2) / ((sunset - sunrise)/2));
+    const r = Math.round(135 - mid * 100);
+    const g = Math.round(206 - mid * 80);
+    const b = Math.round(250 - mid * 30);
+    colour = `rgb(${r},${g},${b})`;
+  } else if (h >= sunset && h <= dusk){         // dusk gradient
+    const p = (h - sunset) / (dusk - sunset);
+    const r = Math.round(250 - p * 110);
+    const g = Math.round(140 + p * 30);
+    const b = Math.round(11  + p * 40);
+    colour = `rgb(${r},${g},${b})`;
+  }
+  return colour;
 }
-/* first call */
-loadSun();
-/* refresh at midnight local time */
-setInterval(() => {
-  const now = new Date();
-  if (now.getHours() === 0 && now.getMinutes() === 0) loadSun();
-}, 60_000);
 
 /* ---------- DRAW ---------- */
 function draw(){
@@ -247,23 +221,16 @@ function draw(){
   const h=now.getHours(), m=now.getMinutes(), s=now.getSeconds();
 
   
-  /* outer ring = live sky colour */
-  if (!sunTimes) {  // fallback until first fetch finishes
-    outer.style.stroke = '#6CE0FF';
-  } else {
-    const nowMin = h*60 + m;
-    const dayLen = sunTimes.sunset - sunTimes.sunrise;
-    let sky = '#0b1a3a';                 // default night
-    if (nowMin >= sunTimes.sunrise && nowMin <= sunTimes.sunset) {
-      const p = (nowMin - sunTimes.sunrise) / dayLen;  // 0 → 1 → 0
-      const mid = 1 - Math.abs(p - 0.5) * 2;           // 0 at noon, 1 at edges
-      const r = Math.round(135 - mid * 120);
-      const g = Math.round(206 - mid * 90);
-      const b = Math.round(250 - mid * 40);
-      sky = `rgb(${r},${g},${b})`;
-    }
-    outer.style.stroke = sky;
-  }
+  /* outer 24h SKY */
+  // const dayStart=0, dayEnd=24, dayMinutes=(dayEnd-dayStart)*60;
+  // const minutesToday=Math.max(0,Math.min(dayMinutes,(h-dayStart)*60+m));
+  // const dayP=minutesToday/dayMinutes;
+  //     /* outer.style.strokeDashoffset=outer.style.strokeDasharray*(1-dayP); */
+  // outer.style.strokeDashoffset=outer.style.strokeDasharray*(1-dayP);
+  // outer.style.stroke = skyColour(h);   // <-- sky instead of static colour!
+
+  /* outer ring = live sky */
+  outer.style.stroke = skyColour(now);
   outer.style.strokeDashoffset = outer.style.strokeDasharray * (1 - dayP);
 
   /* inner 60min */
