@@ -91,6 +91,7 @@ small{color:#aaa;font-size:.8rem}
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
 <script>
 /* ---------- CONFIG ---------- */
+const LAT = 37.943391, LNG = -121.800546;
 const STORE = key => `ringclk_${key}`;
 let offsetMinutes = +(localStorage.getItem(STORE('offset'))||0);
 let chimeEvery    = +(localStorage.getItem(STORE('chime'))||60);
