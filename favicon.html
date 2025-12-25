@@ -103,11 +103,6 @@ const STORE = key => `ringclk_${key}`;
 let offsetMinutes = +(localStorage.getItem(STORE('offset'))||0);
 let chimeEvery    = +(localStorage.getItem(STORE('chime'))||60);
 let lastChimeMinute=-1, lastMinute=-1;
-/* ---------- MICRO FAVICON VARS ---------- */
-const favCanvas = document.getElementById('favCanvas');
-const favCtx    = favCanvas.getContext('2d');
-const favSize   = 64;
-const favRadius = favSize / 2 - 4;
 
 /* ---------- DOM ---------- */
 const outer = document.getElementById('outer');
@@ -227,6 +222,12 @@ function skyColour(now){
 }
 /* ---------- MICRO FAVICON ---------- */
 function drawFavicon(){
+  /* ---------- MICRO FAVICON VARS ---------- */
+  const favCanvas = document.getElementById('favCanvas');
+  const favCtx    = favCanvas.getContext('2d');
+  const favSize   = 64;
+  const favRadius = favSize / 2 - 4;
+      
   favCtx.clearRect(0, 0, favSize, favSize);
   favCtx.save();
   favCtx.translate(favRadius + 2, favRadius + 2);
