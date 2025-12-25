@@ -68,7 +68,7 @@ small{color:#aaa;font-size:.8rem}
   </label>
 
   <label>Background color
-    <input type="color" id="cOuter" value="#6CE0FF">
+    <input type="color" id="bgPicker" value="#6CE0FF">
   </label>
   <label>Track color
     <input type="color" id="cTrack" value="#333333">
@@ -113,7 +113,7 @@ const trackS= document.querySelector('.track:nth-of-type(3)');
 const timeTxt=document.getElementById('time');
 const subTxt =document.getElementById('sub');
 const smoothCk=document.getElementById('smooth');
-const bgPicker=document.getElementById('cOuter');
+const bgPicker=document.getElementById('bgPicker');
 const cTrack=document.getElementById('cTrack');
 const chimeInp=document.getElementById('chimeInt');
 const settings=document.getElementById('settings');
@@ -320,9 +320,9 @@ cTrack.onchange=e=>{
   document.documentElement.style.setProperty('--track',e.target.value);
   localStorage.setItem(STORE('cTrack'),e.target.value);
 };
-if(localStorage.getItem(STORE('cOuter'))) cOuter.value=localStorage.getItem(STORE('cOuter'));
+      
 if(localStorage.getItem(STORE('cTrack'))) cTrack.value=localStorage.getItem(STORE('cTrack'));
-cOuter.onchange({target:cOuter}); cTrack.onchange({target:cTrack});
+cTrack.onchange({target:cTrack});
 
 const savedBg = localStorage.getItem(STORE('pageBg'));
 if (savedBg) {
