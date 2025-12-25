@@ -8,11 +8,11 @@
 <link rel="manifest" href="manifest.json">
 <title>Ring Clock</title>
 <style>
-:root{--bg:#111; --track:#333; --outer:#6CE0FF; --txt:#eee; --accent:#6CE0FF;
+:root{--bg:#111; --track:#333; --outer:#6CE0FF; --txt:#eee; --accent:#6CE0FF; --page-bg:#111;
       --safe-top:env(safe-area-inset-top,0); --safe-bottom:env(safe-area-inset-bottom,0);}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;height:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);color:var(--txt);font-family:system-ui,Arial;padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--page-bg);color:var(--txt);font-family:system-ui,Arial;padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}
 #clockWrap{width:min(85vw,85vh);aspect-ratio:1/1;position:relative}
 svg{width:100%;height:100%;transform:rotate(-90deg)}
 circle{fill:none;stroke-linecap:round}
@@ -57,7 +57,7 @@ small{color:#aaa;font-size:.8rem}
 <section id="settings">
   <h3 style="margin:0 0 .4rem">Settings</h3>
 
-  <label>Outer Ø <span id="vOuter">100</span> mm
+  <label>Background color<span id="vOuter">100</span> mm
     <input type="range" id="dOuter" min="30" max="1000" value="750">
   </label>
   <label>Hour Ø <span id="vHour">74</span> mm
@@ -113,7 +113,7 @@ const trackS= document.querySelector('.track:nth-of-type(3)');
 const timeTxt=document.getElementById('time');
 const subTxt =document.getElementById('sub');
 const smoothCk=document.getElementById('smooth');
-const cOuter=document.getElementById('cOuter');
+const bgPicker=document.getElementById('cOuter');
 const cTrack=document.getElementById('cTrack');
 const chimeInp=document.getElementById('chimeInt');
 const settings=document.getElementById('settings');
@@ -312,9 +312,9 @@ smoothCk.onchange=()=>applySmooth();
 smoothCk.checked=localStorage.getItem(STORE('smooth'))!=='false';
 applySmooth();
 
-cOuter.onchange=e=>{
-  document.documentElement.style.setProperty('--outer',e.target.value);
-  localStorage.setItem(STORE('cOuter'),e.target.value);
+bgPicker.onchange=e=>{
+  document.documentElement.style.setProperty('--page-bg',e.target.value);
+  localStorage.setItem(STORE('pageBg'),e.target.value);
 };
 cTrack.onchange=e=>{
   document.documentElement.style.setProperty('--track',e.target.value);
@@ -324,6 +324,12 @@ if(localStorage.getItem(STORE('cOuter'))) cOuter.value=localStorage.getItem(STOR
 if(localStorage.getItem(STORE('cTrack'))) cTrack.value=localStorage.getItem(STORE('cTrack'));
 cOuter.onchange({target:cOuter}); cTrack.onchange({target:cTrack});
 
+if (localStorage.getItem(STORE('pageBg'))) {
+  const saved = localStorage.getItem(STORE('pageBg'));
+  document.documentElement.style.setProperty('--page-bg', saved);
+  bgPicker.value = saved;
+}
+      
 chimeInp.onchange=e=>{
   chimeEvery=+e.target.value||0;
   localStorage.setItem(STORE('chime'),chimeEvery);
