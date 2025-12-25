@@ -325,9 +325,8 @@ if(localStorage.getItem(STORE('cTrack'))) cTrack.value=localStorage.getItem(STOR
 cOuter.onchange({target:cOuter}); cTrack.onchange({target:cTrack});
 
 if (localStorage.getItem(STORE('pageBg'))) {
-  const saved = localStorage.getItem(STORE('pageBg'));
-  document.documentElement.style.setProperty('--page-bg', saved);
-  bgPicker.value = saved;
+  bgPicker.value = localStorage.getItem(STORE('pageBg'));
+  bgPicker.onchange({ target: bgPicker });   // same one-liner as cTrack
 }
       
 chimeInp.onchange=e=>{
