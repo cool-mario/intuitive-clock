@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <title>Ring Clock</title>
 <style>
-:root{--bg:#111; --track:#333; --outer:#6CE0FF; --txt:#eee; --accent:#6CE0FF; --page-bg:#111;
+:root{--page-bg:#111; --track:#333; --outer:#6CE0FF; --txt:#eee; --accent:#6CE0FF; 
       --safe-top:env(safe-area-inset-top,0); --safe-bottom:env(safe-area-inset-bottom,0);}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;height:100%;touch-action:manipulation;-webkit-user-select:none;user-select:none}
@@ -312,9 +312,9 @@ smoothCk.onchange=()=>applySmooth();
 smoothCk.checked=localStorage.getItem(STORE('smooth'))!=='false';
 applySmooth();
 
-bgPicker.onchange=e=>{
-  document.documentElement.style.setProperty('--page-bg',e.target.value);
-  localStorage.setItem(STORE('pageBg'),e.target.value);
+bgPicker.onchange = e => {
+  document.documentElement.style.setProperty('--page-bg', e.target.value);
+  localStorage.setItem(STORE('pageBg'), e.target.value);
 };
 cTrack.onchange=e=>{
   document.documentElement.style.setProperty('--track',e.target.value);
@@ -324,9 +324,13 @@ if(localStorage.getItem(STORE('cOuter'))) cOuter.value=localStorage.getItem(STOR
 if(localStorage.getItem(STORE('cTrack'))) cTrack.value=localStorage.getItem(STORE('cTrack'));
 cOuter.onchange({target:cOuter}); cTrack.onchange({target:cTrack});
 
-if (localStorage.getItem(STORE('pageBg'))) {
-  bgPicker.value = localStorage.getItem(STORE('pageBg'));
-  bgPicker.onchange({ target: bgPicker });   // same one-liner as cTrack
+const savedBg = localStorage.getItem(STORE('pageBg'));
+if (savedBg) {
+  document.documentElement.style.setProperty('--page-bg', savedBg);
+  bgPicker.value = savedBg;
+} else {
+  // first-ever run → default to near-black
+  document.documentElement.style.setProperty('--page-bg', '#111');
 }
       
 chimeInp.onchange=e=>{
