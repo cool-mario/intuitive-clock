@@ -288,13 +288,19 @@ function draw(){
     }
   }
 }
-/* ---------- AUDIO ---------- */
+/* ---------- AUDIO ---------- Three-square burst: A₅ → B₅ → C₆ (880 → 988 → 1047 Hz) each 50 ms, 50 ms apart */
 function beep(){
-  const ctx=new (window.AudioContext||window.webkitAudioContext)();
-  const osc=ctx.createOscillator(), g=ctx.createGain();
-  osc.type='sine'; osc.frequency.value=800; g.gain.value=0.08;
-  osc.connect(g).connect(ctx.destination);
-  osc.start(); osc.stop(ctx.currentTime+0.06);
+  const ctx = new (window.AudioContext||webkitAudioContext)();
+  [880, 988, 1047].forEach((freq, i) => {   // A5 → B5 → C6
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = 'square';
+    o.frequency.value = freq;
+    g.gain.value = 0.12;
+    o.connect(g).connect(ctx.destination);
+    o.start(ctx.currentTime + i * 0.05);   // 0 ms, 50 ms, 100 ms
+    o.stop (ctx.currentTime + i * 0.05 + 0.05);
+  });
 }
 
 /* ---------- LOOP ---------- */
