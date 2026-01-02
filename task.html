@@ -386,10 +386,17 @@ innerRing.addEventListener('mousedown', e => pressTimer = setTimeout(() => {
   taskStart = null; taskPaused = 0; taskRunning = false;
 }, 600));
 innerRing.addEventListener('mouseup', e => clearTimeout(pressTimer));
-innerRing.addEventListener('touchstart', e => pressTimer = setTimeout(() => {
-  taskStart = null; taskPaused = 0; taskRunning = false;
-}, 600));
-innerRing.addEventListener('touchend', e => clearTimeout(pressTimer));
+innerRing.addEventListener('touchstart', e => {
+  pressTimer = setTimeout(() => {
+    taskStart = null; taskPaused = 0; taskRunning = false;
+  }, 600);
+}, { passive: true }); // fix silly warning
+
+innerRing.addEventListener('touchend', e => {
+  clearTimeout(pressTimer);
+}, { passive: true });
+
+      
 
 </script>
 </body>
