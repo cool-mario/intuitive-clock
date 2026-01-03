@@ -5,6 +5,8 @@ Solution: this clock thing!! the outer ring fills up once a day, with the color 
 
 ## task.html is the most updated version
 <img width="759" height="727" alt="image" src="https://github.com/user-attachments/assets/e743f8ff-1b67-44ce-bdf2-1ba5cac60107" />
+**Glass UI!!! much fancy**
+<img width="338" height="387" alt="image" src="https://github.com/user-attachments/assets/4eb176e2-7bc4-4f70-9c79-0d4af1de1ed0" />
 
 
 ### todo
