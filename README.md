@@ -7,11 +7,12 @@ Solution: this clock thing!! the outer ring fills up once a day, with the color 
 <img width="759" height="727" alt="image" src="https://github.com/user-attachments/assets/e743f8ff-1b67-44ce-bdf2-1ba5cac60107" />
 
 
-**Glass UI!!! much fancy** <br>
+**Glass UI!!! much fancy compared to the original** <br>
 <img width="338" height="387" alt="image" src="https://github.com/user-attachments/assets/4eb176e2-7bc4-4f70-9c79-0d4af1de1ed0" />
+<img width="294" height="434" alt="image" src="https://github.com/user-attachments/assets/50696f27-e153-4269-b57e-d1f527daeced" />
 
 
-### todo
+### TO-DO
 * add a settings thing for different beep sounds
 
 ```
