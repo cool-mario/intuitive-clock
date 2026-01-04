@@ -275,7 +275,7 @@ function draw(){
   const dayP=minutesToday/dayMinutes;
   /* outer ring = live sky */
   outer.style.stroke = skyColour(now);
-  outer.style.strokeDashoffset = outer.style.strokeDasharray * (1 - dayP);
+  outer.style.strokeDashoffset = outer.style.strokeDasharray * (1 - 2*dayP);
 
   /* inner 60min */
   const hourP=hourPercent(m,s);
