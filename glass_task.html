@@ -343,7 +343,7 @@ function randonBeep(){
     o.connect(g).connect(ctx.destination);
 
     // timing ±4 ms
-    const t = i * 0.05 + (Math.random() - 0.5) * 0.004;
+    const t = i * 0.05 + Math.random() * 0.004;   // always ≥ 0
     o.start(ctx.currentTime + t);
     o.stop(ctx.currentTime + t + 0.05);
   });
