@@ -310,7 +310,7 @@ function draw(){
   if(chimeEvery>0){
     const totalMin=h*60+m;
     if(totalMin%chimeEvery===0&&lastChimeMinute!==totalMin){
-      lastChimeMinute=totalMin; beep();
+      lastChimeMinute=totalMin; randonBeep();
     }
   }
 }
@@ -326,6 +326,26 @@ function beep(){
     o.connect(g).connect(ctx.destination);
     o.start(ctx.currentTime + i * 0.05);   // 0 ms, 50 ms, 100 ms
     o.stop (ctx.currentTime + i * 0.05 + 0.05);
+  });
+}
+
+function randonBeep(){
+  const ctx = new (window.AudioContext||webkitAudioContext)();
+  const base = [880, 988, 1047];
+  base.forEach((freq, i) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    // ±3 % frequency jitter
+    o.frequency.value = freq * (1 + (Math.random() - 0.5) * 0.06);
+    // ±3 % volume jitter
+    g.gain.value = 0.12 * (1 + (Math.random() - 0.5) * 0.06);
+    o.type = 'square';
+    o.connect(g).connect(ctx.destination);
+
+    // ±4 ms timing jitter (still feels like one burst)
+    const jitter = (Math.random() - 0.5) * 0.004;
+    o.start(ctx.currentTime + i * 0.05 + jitter);
+    o.stop (ctx.currentTime + i * 0.05 + 0.05 + jitter);
   });
 }
 
