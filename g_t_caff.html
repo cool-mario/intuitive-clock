@@ -153,6 +153,11 @@ const vOuter=document.getElementById('vOuter');
 const vHour =document.getElementById('vHour');
 const vSec  =document.getElementById('vSec');
 
+/* ======  KEEP SCREEN ON  ====== */
+const noSleep = new NoSleep();
+document.addEventListener('click',  () => noSleep.enable(), { once: true });
+document.addEventListener('touchstart', () => noSleep.enable(), { once: true });
+
 /* ---------- RING SIZE HANDLER ---------- */
 function mmToViewBox(mm){ return mm*0.1; }
 function applyRingSizes(){
@@ -445,5 +450,6 @@ innerRing.addEventListener('touchend', e => {
       
 
 </script>
+      <script src="https://cdn.jsdelivr.net/npm/nosleep@0.12.0/dist/NoSleep.min.js"></script>
 </body>
 </html>
