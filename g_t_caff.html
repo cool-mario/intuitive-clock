@@ -116,7 +116,7 @@ small{color:#aaa;font-size:.8rem}
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/nosleep@0.12.0/dist/NoSleep.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nosleep@0.12.0/dist/NoSleep.min.js"></script>
 <script>
 /* ---------- TASK TIMER VARS ---------- */
 let taskStart = null;        // timestamp ms
@@ -154,10 +154,17 @@ const vOuter=document.getElementById('vOuter');
 const vHour =document.getElementById('vHour');
 const vSec  =document.getElementById('vSec');
 
-/* ======  KEEP SCREEN ON  ====== */
-const noSleep = new NoSleep();
-document.addEventListener('click',  () => noSleep.enable(), { once: true });
-document.addEventListener('touchstart', () => noSleep.enable(), { once: true });
+/* ====== KEEP SCREEN ON ====== */
+(function initWakeLock(){
+  function enable(){ const ns = new NoSleep(); ns.enable(); }
+  document.addEventListener('click',    enable, { once: true });
+  document.addEventListener('touchstart', enable, { once: true });
+  window.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('click',    enable, { once: true });
+    document.addEventListener('touchstart', enable, { once: true });
+  });
+})();
+
 
 /* ---------- RING SIZE HANDLER ---------- */
 function mmToViewBox(mm){ return mm*0.1; }
