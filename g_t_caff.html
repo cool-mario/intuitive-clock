@@ -116,7 +116,29 @@ small{color:#aaa;font-size:.8rem}
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
+      
 <script src="https://cdn.jsdelivr.net/npm/nosleep@0.12.0/dist/NoSleep.min.js"></script>
+<script>
+console.log('NoSleep loaded:', typeof NoSleep);   // should print "function"
+
+(function initWakeLock(){
+  function enable(){
+    console.log('Wake-lock requested');
+    const ns = new NoSleep();
+    ns.enable().then(() => console.log('Wake-lock ENABLED'))
+               .catch(err => console.warn('Wake-lock failed:', err));
+  }
+  // immediate listeners
+  document.addEventListener('click',    enable, { once: true });
+  document.addEventListener('touchstart', enable, { once: true });
+  // fallback after DOM
+  window.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('click',    enable, { once: true });
+    document.addEventListener('touchstart', enable, { once: true });
+  });
+})();
+</script>
+      
 <script>
 /* ---------- TASK TIMER VARS ---------- */
 let taskStart = null;        // timestamp ms
@@ -153,17 +175,6 @@ const dSec  =document.getElementById('dSec');
 const vOuter=document.getElementById('vOuter');
 const vHour =document.getElementById('vHour');
 const vSec  =document.getElementById('vSec');
-
-/* ====== KEEP SCREEN ON ====== */
-(function initWakeLock(){
-  function enable(){ const ns = new NoSleep(); ns.enable(); }
-  document.addEventListener('click',    enable, { once: true });
-  document.addEventListener('touchstart', enable, { once: true });
-  window.addEventListener('DOMContentLoaded', () => {
-    document.addEventListener('click',    enable, { once: true });
-    document.addEventListener('touchstart', enable, { once: true });
-  });
-})();
 
 
 /* ---------- RING SIZE HANDLER ---------- */
